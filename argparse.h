@@ -234,8 +234,9 @@ namespace argparse{
 		ArgumentParser& fromfile_prefix_chars(std::string prefix);
 		
 		ArgumentParser& set_defaults(std::map<std::string, std::string> defaults);
-
 		ArgumentParser& help(std::string help);
+
+		ArgumentParser& set_linecap(int linecap);
 		
 		// Accessors
 		std::string get_prog() const;
@@ -615,6 +616,11 @@ namespace argparse{
 	
 	ArgumentParser& ArgumentParser::help(std::string help){
 		if (_subparser && help != "") _subparser_help = trim(help);
+		return *this;
+	}
+
+	ArgumentParser& ArgumentParser::set_linecap(int linecap){
+		if (linecap > 0) _linecap = linecap;
 		return *this;
 	}
 	

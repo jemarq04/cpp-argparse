@@ -950,6 +950,693 @@ std::map<std::string, std::vector<std::string>> ArgumentParser::parse_args(
 	return args;
 }
 
+std::map<std::string, std::vector<std::string>> ArgumentParser::_parse_new_args(
+		std::vector<std::string> argv){
+	if (argv.size() != 0){
+		_args = argv;
+		_nargs = argv.size();
+	}
+	if (_fromfile_prefix != ""){
+		_args = read_args_from_files(_args);
+		_nargs = _args.size();
+	}
+	std::map<std::string, std::vector<std::string>> args;
+	for (const auto& it : _defaults)
+		args[it.first] = std::vector<std::string>{it.second};
+	
+	load_helpstring();
+
+	_parsed = true;
+	std::vector<Argument*> flags;
+	for (auto& arg : _optlist){
+		if (arg._valtype == ValType::Bool){
+			if (arg._action == Action::Help)
+				_helpargs.push_back(arg);
+			flags.push_back(&arg);
+		}
+	}
+	
+	int first_collection = -1;
+	for (int i=0; i<_arglist.size(); i++){
+		if (_arglist[i]._required) _req_posargs++;
+		if (first_collection < 0 && _arglist[i]._more_nargs != '?' && _arglist[i]._more_nargs != '\0')
+			first_collection = i;
+	}
+	
+	int help_index = -1, print_version = -1;
+	bool only_posargs = false;
+	std::vector<std::string> posargs;
+	std::vector<std::string> others;
+	std::string unrecognized = "";
+
+	//Cursory check
+	int shift = 1;
+	int posarg = 0;
+	for (int i=0; i<_nargs; i+=shift){
+		shift = 1;
+		std::string given = _args[i];
+		bool found = false;
+		if (given == "--"){
+			only_posargs = true;
+			continue;
+		}
+
+		if (given[0] != '-' || only_posargs){
+			const auto& arg = _arglist[posarg];
+			if (arg._required){
+				if (arg._more_nargs == '+'){
+					
+				}
+			}
+			else{
+				if (arg._more_nargs == '?'){
+					
+				}
+				else if (arg._more_nargs == '*'){
+					
+				}
+				else if (arg._more_nargs == '.'){
+					
+				}
+			}
+		}
+		else{
+			for (const auto& arg : _optlist){
+				char sname = (arg._sname != "")? arg._sname[1] : '\0';
+				std::string lname = arg._lname;
+				
+				if (arg._action != Action::Store) continue;
+
+				if (find_arg(arg, given)){
+					std::string temp = (lname.size()>1 && lname[1] == '-')? given.substr(given.find('=')+1) : given;
+					if (temp == given){
+						for (int j=i+1; j<_nargs; j++){
+							std::string temp = _args[j];
+							if (!valid_value(temp)) break;
+							shift++;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	only_posargs = false;
+	//int nonreq_fillable = posargs.size() - _req_posargs - _base_req_posargs;
+	for (int i=0; i<_nargs; i+=shift){
+		shift = 1;
+		std::string given = _args[i];
+		bool found = false;
+		if (given == "--"){
+			only_posargs = true;
+			continue;
+		}
+		
+		if (given[0] != '-' || only_posargs){
+			// Positional Arguments
+			//TODO
+		}
+		else{
+			// Optional Arguments
+			for (int j=0; j<_helpargs.size(); j++){
+				char sname = (_helpargs[j]._sname != "")? 
+					_helpargs[j]._sname[1] : '\0';
+				std::string lname = _helpargs[j]._lname;
+				
+				if (contains(given, sname, true) || given == lname){
+					help_index = i;
+				}
+			}
+			for (int j=0; j<_optlist.size(); j++){
+				char sname = (_optlist[j]._sname != "")? 
+					_optlist[j]._sname[1] : '\0';
+				std::string lname = _optlist[j]._lname;
+				
+				if (_optlist[j]._action == Action::Version){
+					if (contains(given, sname, true) || given == lname)
+						print_version = j;
+				}
+				if (_optlist[j]._action != Action::Store) continue;
+				
+				// Bool Flags
+				if (_optlist[j]._valtype == ValType::Bool) continue;
+				// Other Flags
+				if (contains(given, sname)){
+					// Short form concatenation
+					if (_optlist[j]._nargs != 1 && _optlist[j]._nargs != -1)
+						error(_optlist[j].error(2));
+					std::string temp = given.substr(given.find(sname)+1);
+					
+					int setresult = _optlist[j].set(temp, _has_digit_opt, false);
+					if (setresult == 1)
+						error(_optlist[j].error(3, temp));
+					
+					char *ending;
+					if (_optlist[j]._valtype == ValType::Int){
+						int value = strtol(temp.c_str(), &ending, 10);
+						if (std::string(ending) != "" || temp == "")
+							error(_optlist[j].error(1, temp));
+					}
+					else if (_optlist[j]._valtype == ValType::Float){
+						double value = strtod(temp.c_str(), &ending);
+						if (std::string(ending) != "" || temp == "")
+							error(_optlist[j].error(1, temp));
+					}
+					
+					given = given.substr(0, given.find(sname));
+					given += sname;
+					if (_optlist[j]._valtype == ValType::String){
+						if (help_index == i){
+							for (int k=0; k<_helpargs.size(); k++){
+								char h_sname = (_helpargs[k]._sname != "")? 
+									_helpargs[k]._sname[1] : '\0';
+								std::string h_lname = _helpargs[k]._lname;
+
+								if (contains(_optlist[j]._val.back(), h_sname, true) && !contains(given, h_sname, true)){
+									help_index = -1;
+								}
+							}
+						}
+					}
+
+					found = true;
+				}
+				else if (find_arg(_optlist[j], given)){
+					// Lone argument OR long form concatenation
+					if (_optlist[j]._nargs == 1 || _optlist[j]._more_nargs == '?'){
+						// One narg argument
+						std::string temp = (lname.size()>1 && lname[1] == '-')? given.substr(given.find('=')+1) : given;
+						if (given == temp){
+							// Lone long form
+							if (i+1 >= _nargs){
+								if (_optlist[j]._more_nargs == '?'){
+									_optlist[j]._val = _optlist[j]._const;
+									_optlist[j]._found = true;
+								}
+								else
+									error(_optlist[j].error(2));
+							}
+							else{
+								shift = 2;
+								int setresult = _optlist[j]
+									.set(_args[i+1], _has_digit_opt);
+								if (setresult == 1)
+									error(_optlist[j].error(3, _args[i+1]));
+								else if (setresult == 2){
+									if (_optlist[j]._more_nargs != '?')
+										error(_optlist[j].error(2));
+									else shift = 1;
+								}
+								char *ending;
+								if (_optlist[j]._valtype == ValType::Int){
+									int value = strtol(_args[i+1].c_str(), &ending, 10);
+									if (std::string(ending) != "" || _args[i+1] == "")
+										error(_optlist[j].error(1, _args[i+1]));
+								}
+								else if (_optlist[j]._valtype == ValType::Float){
+									double value = strtod(_args[i+1].c_str(), &ending);
+									if (std::string(ending) != "" || _args[i+1] == "")
+										error(_optlist[j].error(1, _args[i+1]));
+								}
+					
+							}
+						}
+						else{
+							int setresult = _optlist[j].set(temp, _has_digit_opt, false);
+							if (setresult == 1)
+								error(_optlist[j].error(3, temp));
+							
+							char *ending;
+							if (_optlist[j]._valtype == ValType::Int){
+								int value = strtol(temp.c_str(), &ending, 10);
+								if (std::string(ending) != "" || temp == "")
+									error(_optlist[j].error(1, temp));
+							}
+							else if (_optlist[j]._valtype == ValType::Float){
+								double value = strtod(temp.c_str(), &ending);
+								if (std::string(ending) != "" || temp == "")
+									error(_optlist[j].error(1, temp));
+							}
+						}
+					}
+					else{
+						// Arguments with >1 nargs
+						if (_optlist[j]._more_nargs == '\0'){
+							if (i+_optlist[j]._nargs >= _nargs)
+								error(_optlist[j].error(2));
+							shift = _optlist[j]._nargs + 1;
+							for (int k=1; k<=_optlist[j]._nargs; k++){
+								int setresult = _optlist[j].set(_args[i+k], _has_digit_opt);
+								if (setresult == 1)
+									error(_optlist[j].error(3, _args[i+k]));
+								else if (setresult == 2)
+									error(_optlist[j].error(2));
+								
+								char *ending;
+								if (_optlist[j]._valtype == ValType::Int){
+									int value = strtol(_args[i+k].c_str(), &ending, 10);
+									if (std::string(ending) != "" || _args[i+k] == "")
+										error(_optlist[j].error(1, _args[i+k]));
+								}
+								else if (_optlist[j]._valtype == ValType::Float){
+									double value = strtod(_args[i+k].c_str(), &ending);
+									if (std::string(ending) != "" || _args[i+k] == "")
+										error(_optlist[j].error(1, _args[i+k]));
+								}
+							}
+						}
+						else if (_optlist[j]._more_nargs == '*' || _optlist[j]._more_nargs == '+'){
+							std::string temp = (lname.size()>1 && lname[1] == '-')? given.substr(given.find('=')+1) : given;
+							if (given == temp){
+								int captured = 0;
+								for (int k=i+1; k<_nargs; k++){
+									int setresult = _optlist[j].set(_args[k], _has_digit_opt);
+									if (setresult == 1)
+										error(_optlist[j].error(3, _args[k]));
+									else if (setresult == 2)
+										break;
+									captured++;
+									
+									char *ending;
+									if (_optlist[j]._valtype == ValType::Int){
+										int value = strtol(_args[k].c_str(), &ending, 10);
+										if (std::string(ending) != "" || _args[k] == "")
+											error(_optlist[j].error(1, _args[k]));
+									}
+									else if (_optlist[j]._valtype == ValType::Float){
+										double value = strtod(_args[k].c_str(), &ending);
+										if (std::string(ending) != "" || _args[k] == "")
+											error(_optlist[j].error(1, _args[k]));
+									}
+								}
+								if (captured == 0){
+									if (_optlist[j]._more_nargs == '+')
+										error(_optlist[j].error(2));
+									_optlist[j]._found = true;
+								}
+								shift = captured + 1;
+							}
+							else{
+								int setresult = _optlist[j].set(temp, _has_digit_opt, false);
+								if (setresult == 1)
+									error(_optlist[j].error(3, temp));
+								
+								char *ending;
+								if (_optlist[j]._valtype == ValType::Int){
+									int value = strtol(temp.c_str(), &ending, 10);
+									if (std::string(ending) != "" || temp == "")
+										error(_optlist[j].error(1, temp));
+								}
+								else if (_optlist[j]._valtype == ValType::Float){
+									double value = strtod(temp.c_str(), &ending);
+									if (std::string(ending) != "" || temp == "")
+										error(_optlist[j].error(1, temp));
+								}
+							}
+						}
+						else if (_optlist[j]._more_nargs == '.'){
+							std::string temp = (lname.size()>1 && lname[1] == '-')? given.substr(given.find('=')+1) : given;
+							if (given == temp){
+								int captured = 0;
+								for (int k=i+1; k<_nargs; k++){
+									int setresult = _optlist[j].set(_args[k], _has_digit_opt, false);
+									if (setresult == 1)
+										error(_optlist[j].error(3, _args[k]));
+									captured++;
+									
+									char *ending;
+									if (_optlist[j]._valtype == ValType::Int){
+										int value = strtol(_args[k].c_str(), &ending, 10);
+										if (std::string(ending) != "" || _args[k] == "")
+											error(_optlist[j].error(1, _args[k]));
+									}
+									else if (_optlist[j]._valtype == ValType::Float){
+										double value = strtod(_args[k].c_str(), &ending);
+										if (std::string(ending) != "" || _args[k] == "")
+											error(_optlist[j].error(1, _args[k]));
+									}
+								}
+								if (captured == 0) _optlist[j]._found = true;
+								shift = captured + 1;
+							}
+							else{
+								int setresult = _optlist[j].set(temp, _has_digit_opt, false);
+								if (setresult == 1)
+									error(_optlist[j].error(3, temp));
+								
+								char *ending;
+								if (_optlist[j]._valtype == ValType::Int){
+									int value = strtol(temp.c_str(), &ending, 10);
+									if (std::string(ending) != "" || temp == "")
+										error(_optlist[j].error(1, temp));
+								}
+								else if (_optlist[j]._valtype == ValType::Float){
+									double value = strtod(temp.c_str(), &ending);
+									if (std::string(ending) != "" || temp == "")
+										error(_optlist[j].error(1, temp));
+								}
+							}
+						}
+					}
+					found = true;
+				}
+			}
+			// Boolean Args
+			for (int j=0; j<flags.size(); j++){
+				char sname = (flags[j]->_sname != "")? flags[j]->_sname[1] : '\0';
+				std::string lname = flags[j]->_lname;
+				
+				if (contains(given, sname, true) || given == lname){
+					if (flags[j]->_action == Action::Store){
+						if (!flags[j]->_has_default || (flags[j]->_has_default && flags[j]->_def[0] == FALSE))
+							flags[j]->set(TRUE, _has_digit_opt);
+						else
+							flags[j]->set(FALSE, _has_digit_opt);
+					}
+					else if (flags[j]->_action == Action::StoreConst){
+						flags[j]->_val = flags[j]->_const;
+						flags[j]->_found = true;
+					}
+					else if (flags[j]->_action == Action::Count && given == lname){
+						flags[j]->_val[0] = std::to_string(strtol(flags[j]->_val[0].c_str(), nullptr, 10)+1);
+						flags[j]->_found = true;
+					}
+					found = true;
+				}
+			}
+			if (!found){
+				if (_subparser) others.push_back(given);
+				else unrecognized += " " + given;
+			}
+			if (found && given.size() > 1 && given[1] != '-'){
+				for (int j=1; j<given.size(); j++){
+					bool found_optarg = false;
+					for (int k=0; k<_optlist.size(); k++){
+						if (_optlist[k]._sname.size() > 1 && given[j] == _optlist[k]._sname[1]){
+							found_optarg = true;
+							if (_optlist[k]._action == Action::Count){
+								_optlist[k]._val[0] = std::to_string(strtol(_optlist[k]._val[0].c_str(), nullptr, 10)+1);
+								_optlist[k]._found = true;
+							}
+							break;
+						}
+					}
+					if (!found_optarg){
+						unrecognized += " " + _args[i];
+						break;
+					}
+				}
+			}
+		}
+	}
+	if (help_index>=0){
+		print_help();
+		exit(0);
+	}
+	if (print_version >= 0){
+		std::cout << _optlist[print_version]._version << std::endl;
+		exit(0);
+	}
+
+	std::string reqlist = "";
+	for (int i=0; i<_optlist.size(); i++){
+		if (_optlist[i]._action == Action::Version || _optlist[i]._action == Action::Help)
+			continue;
+		if (!_optlist[i]._found){
+			if (_optlist[i]._required){
+				if (reqlist == "")
+					reqlist += _optlist[i].get_id();
+				else
+					reqlist += ", " + _optlist[i].get_id();
+			}
+			else if (_optlist[i]._has_default){
+				_optlist[i]._val = _optlist[i]._def;
+				_optlist[i]._found = true;
+			}
+		}
+		else if (_optlist[i].size() == 0 && _optlist[i]._more_nargs == '?'){
+			_optlist[i]._val = _optlist[i]._const;
+			_optlist[i]._found = true;
+		}
+		
+		if (_optlist[i]._found)
+			args[_optlist[i]._dest] = _optlist[i]._val;
+		else if (_none_str != SUPPRESS)
+			args[_optlist[i]._dest] = std::vector<std::string>{_none_str};
+	}
+	// Positional Arguments
+	int nonreq_fillable = posargs.size() - _req_posargs - _base_req_posargs;
+	int req_filled = 0;
+	int i=0;
+	for (int j=0; j<posargs.size(); j++){
+		if (i >= _arglist.size()){
+			if (_subparser) others.push_back(posargs[j]);
+			else{
+				unrecognized += " " + posargs[j];
+				i++;
+			}
+			continue;
+		}
+		if (_arglist[i]._required){
+			if (_arglist[i]._more_nargs == '\0'){
+				if (_arglist[i]._valtype == ValType::Int){
+					char *ending;
+					int value = strtol(posargs[j].c_str(), &ending, 10);
+					if (std::string(ending) != "" || posargs[j] == "")
+						error(_arglist[i].error(1, posargs[j]));
+				}
+				else if (_arglist[i]._valtype == ValType::Float){
+					char *ending;
+					double value = strtod(posargs[j].c_str(), &ending);
+					if (std::string(ending) != "" || posargs[j] == "")
+						error(_arglist[i].error(1, posargs[j]));
+				}
+				int setresult = _arglist[i].set(posargs[j], _has_digit_opt);
+				if (setresult == 1)
+					error(_arglist[i].error(3, posargs[j]));
+				req_filled++;
+				if (_arglist[i]._dest != "")
+					args[_arglist[i]._dest] = _arglist[i]._val;
+				
+				if (_arglist[i]._subparser){
+					for (auto& parser : _subparsers._subparsers){
+						if (parser._subparser_cmd == _arglist[i]._val[0]){
+							parser._base_req_posargs = _req_posargs - req_filled;
+							auto leftovers = parser.parse_args(
+								std::vector<std::string>(posargs.begin()+j+1, posargs.end())
+							);
+							for (const auto& it : leftovers)
+								if (it.first != SUPPRESS)
+									args[it.first] = it.second;
+							j = -1;
+							posargs.clear();
+							for (const auto& str : leftovers[SUPPRESS]){
+								if (str[0] == '-')
+									unrecognized += " " + str;
+								else posargs.push_back(str);
+							}
+							nonreq_fillable = posargs.size() - _req_posargs - _base_req_posargs - req_filled;
+						}
+					}
+				}
+				i++;
+			}
+			else{//_more_nargs == '+'
+				if (_arglist[i].size() == 0){
+					if (_arglist[i]._valtype == ValType::Int){
+						char *ending;
+						int value = strtol(posargs[j].c_str(), &ending, 10);
+						if (std::string(ending) != "" || posargs[j] == "")
+							error(_arglist[i].error(1, posargs[j]));
+					}
+					else if (_arglist[i]._valtype == ValType::Float){
+						char *ending;
+						double value = strtod(posargs[j].c_str(), &ending);
+						if (std::string(ending) != "" || posargs[j] == "")
+							error(_arglist[i].error(1, posargs[j]));
+					}
+					int setresult = _arglist[i].set(posargs[j], _has_digit_opt);
+					if (setresult == 1)
+						error(_arglist[i].error(3, posargs[j]));
+					if (_arglist[i]._dest != "") args[_arglist[i]._dest] = _arglist[i]._val;
+					req_filled++;
+				}
+				else if (nonreq_fillable > 0){
+					if (_arglist[i]._valtype == ValType::Int){
+						char *ending;
+						int value = strtol(posargs[j].c_str(), &ending, 10);
+						if (std::string(ending) != "" || posargs[j] == "")
+							error(_arglist[i].error(1, posargs[j]));
+					}
+					else if (_arglist[i]._valtype == ValType::Float){
+						char *ending;
+						double value = strtod(posargs[j].c_str(), &ending);
+						if (std::string(ending) != "" || posargs[j] == "")
+							error(_arglist[i].error(1, posargs[j]));
+					}
+					int setresult = _arglist[i].set(posargs[j], _has_digit_opt);
+					if (setresult == 1)
+						error(_arglist[i].error(3, posargs[j]));
+					if (_arglist[i]._dest != "") args[_arglist[i]._dest] = _arglist[i]._val;
+					nonreq_fillable--;
+				}
+				else{
+					i++;
+					j--;
+				}
+			}
+		}
+		else{
+			if (first_collection >= 0){
+				if (i > first_collection){
+					if (_none_str != SUPPRESS && _arglist[i]._dest != "")
+						args[_arglist[i]._dest] = std::vector<std::string>{_none_str};
+					i++;
+					j--;
+				}
+				else if (i == first_collection){//_more_nargs == '*'
+					if (nonreq_fillable > 0){
+						if (_arglist[i]._valtype == ValType::Int){
+							char *ending;
+							int value = strtol(posargs[j].c_str(), &ending, 10);
+							if (std::string(ending) != "" || posargs[j] == "")
+								error(_arglist[i].error(1, posargs[j]));
+						}
+						else if (_arglist[i]._valtype == ValType::Float){
+							char *ending;
+							double value = strtod(posargs[j].c_str(), &ending);
+							if (std::string(ending) != "" || posargs[j] == "")
+								error(_arglist[i].error(1, posargs[j]));
+						}
+						int setresult = _arglist[i].set(posargs[j], _has_digit_opt);
+						if (setresult == 1)
+							error(_arglist[i].error(3, posargs[j]));
+						if (_arglist[i]._dest != "") args[_arglist[i]._dest] = _arglist[i]._val;
+						nonreq_fillable--;
+					}
+					else{
+						if (_arglist[i].size() == 0 && _none_str != SUPPRESS)
+							args[_arglist[i]._dest] = std::vector<std::string>{_none_str};
+						i++;
+						j--;
+					}
+				}
+				else if (nonreq_fillable > 0){
+					if (_arglist[i]._valtype == ValType::Int){
+						char *ending;
+						int value = strtol(posargs[j].c_str(), &ending, 10);
+						if (std::string(ending) != "" || posargs[j] == "")
+							error(_arglist[i].error(1, posargs[j]));
+					}
+					else if (_arglist[i]._valtype == ValType::Float){
+						char *ending;
+						double value = strtod(posargs[j].c_str(), &ending);
+						if (std::string(ending) != "" || posargs[j] == "")
+							error(_arglist[i].error(1, posargs[j]));
+					}
+					int setresult = _arglist[i].set(posargs[j], _has_digit_opt);
+					if (setresult == 1)
+						error(_arglist[i].error(3, posargs[j]));
+					if (_arglist[i]._dest != "") 
+						args[_arglist[i]._dest] = _arglist[i]._val;
+					nonreq_fillable--;
+					
+					if (_arglist[i]._subparser){
+						for (auto& parser : _subparsers._subparsers){
+							if (parser._subparser_cmd == _arglist[i]._val[0]){
+								parser._args = std::vector<std::string>(posargs.begin()+j+1, posargs.end());
+								parser._nargs = parser._args.size();
+								parser._base_req_posargs = _req_posargs - req_filled;
+								auto leftovers = parser.parse_args();
+								for (const auto& it : leftovers)
+									if (it.first != SUPPRESS)
+										args[it.first] = it.second;
+								j = -1;
+								posargs.clear();
+								for (const auto& str : leftovers[SUPPRESS]){
+									if (str[0] == '-')
+										unrecognized += " " + str;
+									else posargs.push_back(str);
+								}
+								nonreq_fillable = posargs.size() - _req_posargs - _base_req_posargs - req_filled;
+							}
+						}
+					}
+					i++;
+				}
+				else{
+					if (_none_str != SUPPRESS && _arglist[i]._dest != "")
+						args[_arglist[i]._dest] = std::vector<std::string>{_none_str};
+					i++;
+					j--;
+				}
+			}
+			else{
+				if (nonreq_fillable > 0){
+					if (_arglist[i]._valtype == ValType::Int){
+						char *ending;
+						int value = strtol(posargs[j].c_str(), &ending, 10);
+						if (std::string(ending) != "" || posargs[j] == "")
+							error(_arglist[i].error(1, posargs[j]));
+					}
+					else if (_arglist[i]._valtype == ValType::Float){
+						char *ending;
+						double value = strtod(posargs[j].c_str(), &ending);
+						if (std::string(ending) != "" || posargs[j] == "")
+							error(_arglist[i].error(1, posargs[j]));
+					}
+					int setresult = _arglist[i].set(posargs[j], _has_digit_opt);
+					if (setresult == 1)
+						error(_arglist[i].error(3, posargs[j]));
+					if (_arglist[i]._dest != "") args[_arglist[i]._dest] = _arglist[i]._val;
+					nonreq_fillable--;
+					
+					if (_arglist[i]._subparser){
+						for (auto& parser : _subparsers._subparsers){
+							if (parser._subparser_cmd == _arglist[i]._val[0]){
+								parser._args = std::vector<std::string>(posargs.begin()+j+1, posargs.end());
+								parser._nargs = parser._args.size();
+								parser._base_req_posargs = _req_posargs - req_filled;
+								auto leftovers = parser.parse_args();
+								for (const auto& it : leftovers)
+									if (it.first != SUPPRESS)
+										args[it.first] = it.second;
+								j = -1;
+								posargs.clear();
+								for (const auto& str : leftovers[SUPPRESS]){
+									if (str[0] == '-')
+										unrecognized += " " + str;
+									else posargs.push_back(str);
+								}
+								nonreq_fillable = posargs.size() - _req_posargs - _base_req_posargs - req_filled;
+							}
+						}
+					}
+					i++;
+				}
+				else{
+					if (_none_str != SUPPRESS && _arglist[i]._dest != "")
+						args[_arglist[i]._dest] = std::vector<std::string>{_none_str};
+					i++;
+					j--;
+				}
+			}
+		}
+	}
+	while (i < _arglist.size()){
+		if (!_arglist[i]._found && _arglist[i]._required)
+			reqlist += (reqlist == ""? "" : ", ") + _arglist[i]._metavar[0];
+		i++;
+	}
+	if (_subparser) args[SUPPRESS] = others;
+	// Final Error Checking
+	if (reqlist != "") error("the following arguments are required: " + reqlist);
+	if (unrecognized != "")
+		error("unrecognized arguments:" + unrecognized);
+
+	return args;
+}
+
 // Private Helpers {{{2
 void ArgumentParser::check_conflict(const Argument& arg, ArgType type){
 	std::string sname = arg._sname, lname = arg._lname;

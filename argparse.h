@@ -249,6 +249,8 @@ namespace argparse{
 		// Parse
 		std::map<std::string, std::vector<std::string>> parse_args(
 				std::vector<std::string> argv = {});
+		std::map<std::string, std::vector<std::string>> _parse_new_args(
+				std::vector<std::string> argv = {});
 		
 	private:
 		// Private Helpers

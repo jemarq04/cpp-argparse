@@ -1,4 +1,4 @@
-# CPP Argument Parser (argparse) v2.2.0
+# CPP Argument Parser (argparse) v2.2.1
 A command-line argument parser for C++11 (and later) that mimics python's argparse. This file will focus on how the implementation in C++ differs from python.
 
 # Using cpp-argparse

@@ -26,12 +26,38 @@ namespace argparse{
 		MetavarType
 	};
 
-	int as_int(std::string str);
-	float as_float(std::string str);
-	double as_double(std::string str);
-	bool as_bool(std::string str);
-	std::string format_args(std::map<std::string, std::vector<std::string>> args);
-	void print_args(std::map<std::string, std::vector<std::string>> args,
+	class ArgumentValue : public std::string {
+	public:
+		template <typename ... Args>
+		ArgumentValue(Args ... args) : std::string(args ...){}
+		
+		operator int(){return strtol(c_str(), nullptr, 10);}
+		operator float(){return strtof(c_str(), nullptr);}
+		operator double(){return strtod(c_str(), nullptr);}
+		operator bool(){return *this == TRUE;}
+	};
+	class ArgumentValueList : public std::vector<ArgumentValue>{
+	public:
+		ArgumentValueList(std::initializer_list<ArgumentValue> vals={}){
+			for (auto& val : vals) push_back(val);
+		}
+
+		ArgumentValueList& operator=(const std::vector<std::string>& other){
+			clear();
+			for (auto& val : other) push_back(val);
+			return *this;
+		}
+		operator int(){return strtol(at(0).c_str(), nullptr, 10);}
+		operator float(){return strtof(at(0).c_str(), nullptr);}
+		operator double(){return strtod(at(0).c_str(), nullptr);}
+		operator bool(){return at(0) == TRUE;}
+		operator std::string(){return at(0);}
+		friend std::ostream& operator<<(std::ostream& os, const ArgumentValueList& arglist);
+		std::string str() const{return at(0);}
+		const char* c_str() const{return at(0).c_str();}
+	};
+	std::string format_args(std::map<std::string, ArgumentValueList> args);
+	void print_args(std::map<std::string, ArgumentValueList> args,
 			std::ostream& out=std::cout);
 		
 	
@@ -247,7 +273,7 @@ namespace argparse{
 		void print_help(std::ostream& out=std::cout);
 		
 		// Parse
-		std::map<std::string, std::vector<std::string>> parse_args(
+		std::map<std::string, ArgumentValueList> parse_args(
 				std::vector<std::string> argv = {});
 		
 	private:

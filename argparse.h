@@ -35,6 +35,8 @@ namespace argparse{
 		operator float(){return strtof(c_str(), nullptr);}
 		operator double(){return strtod(c_str(), nullptr);}
 		operator bool(){return *this == TRUE;}
+
+		bool is_none(){return *this == NONE;}
 	};
 	class ArgumentValueList : public std::vector<ArgumentValue>{
 	public:
@@ -53,8 +55,11 @@ namespace argparse{
 		operator bool(){return at(0) == TRUE;}
 		operator std::string(){return at(0);}
 		friend std::ostream& operator<<(std::ostream& os, const ArgumentValueList& arglist);
+
 		std::string str() const{return at(0);}
+		void str(const std::string &val){at(0) = val;}
 		const char* c_str() const{return at(0).c_str();}
+		bool is_none(){return at(0) == NONE;}
 	};
 	std::string format_args(std::map<std::string, ArgumentValueList> args);
 	void print_args(std::map<std::string, ArgumentValueList> args,

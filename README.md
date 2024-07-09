@@ -2,7 +2,7 @@
 A command-line argument parser for C++11 (and later) that mimics python's argparse. This file will focus on how the implementation in C++ differs from python.
 
 # Using cpp-argparse
-To get started, move the `argparse.h` file into your working area and include it into your makefile. All that you need to do is add `#include "argparse.h"` at the top of your C++ script, and you can now access all of the classes and enums located in the `argparse` namespace.
+To get started, move the `argparse.h` file into your working area and add `#include "argparse.h"` at the top of your C++ script. Now you can access all of the classes and enums located in the `argparse` namespace. (If you'd prefer `argparse.h` in a different location, just be sure to include its directory in your compilation.)
 
 We need to access the command-line arguments to be able to parse them, so a template for a simple script would look something like the following snippet.
 ```C++

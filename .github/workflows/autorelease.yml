@@ -1,0 +1,26 @@
+name: Publish new release
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - argparse.h
+
+jobs:
+  new-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Get new version
+      id: newVersion
+      run: echo "value=v$(grep "ARGPARSE_VERSION" argparse.h | sed "s/.*ARGPARSE_VERSION //")" >> "$GITHUB_OUTPUT"
+    - name: Get old version
+      id: oldVersion
+      uses: pozetroninc/github-action-get-latest-release@master
+      with:
+        repository: jemarq04/cpp-argparse
+    - name: Print versions
+      run: echo "${{ steps.oldVersion.outputs.release }} => ${{ steps.newVersion.outputs.value }}"
+      
+        
+      

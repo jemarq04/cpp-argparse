@@ -15,14 +15,16 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v4
+      with: 
+        fetch-depth: 0
     - name: Get new version
       id: newVersion
-      run: echo "value=v$(grep "ARGPARSE_VERSION" argparse.h | sed "s/.*ARGPARSE_VERSION //")" >> "$GITHUB_OUTPUT"
+      run: value="v$(grep "ARGPARSE_VERSION" argparse.h | sed "s/.*ARGPARSE_VERSION //")"
     - name: Get old version
       id: oldVersion
       uses: WyriHaximus/github-action-get-previous-tag@v1
     - name: Print versions
-      run: echo "${{ steps.oldVersion.outputs.release }} => ${{ steps.newVersion.outputs.value }}"
+      run: echo "${{ steps.oldVersion.outputs.tag }} => ${{ steps.newVersion.outputs.value }}"
       
         
       

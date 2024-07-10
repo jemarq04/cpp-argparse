@@ -61,9 +61,9 @@ namespace argparse{
 		const char* c_str() const{return at(0).c_str();}
 		bool is_none(){return at(0) == NONE;}
 	};
-	std::string format_args(std::map<std::string, ArgumentValueList> args);
-	void print_args(std::map<std::string, ArgumentValueList> args,
-			std::ostream& out=std::cout);
+	typedef std::map<std::string, ArgumentValueList> ArgumentMap;
+	std::string format_args(ArgumentMap args);
+	void print_args(ArgumentMap args, std::ostream& out=std::cout);
 		
 	
 	class ArgumentParser {
@@ -278,8 +278,7 @@ namespace argparse{
 		void print_help(std::ostream& out=std::cout);
 		
 		// Parse
-		std::map<std::string, ArgumentValueList> parse_args(
-				std::vector<std::string> argv = {});
+		ArgumentMap parse_args(std::vector<std::string> argv = {});
 		
 	private:
 		// Private Helpers

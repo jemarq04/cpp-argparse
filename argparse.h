@@ -1,5 +1,6 @@
 #ifndef ARGPARSE_H
 #define ARGPARSE_H
+#define ARGPARSE_VERSION 2.2.2
 #include <iostream>
 #include <fstream>
 #include <sys/ioctl.h>

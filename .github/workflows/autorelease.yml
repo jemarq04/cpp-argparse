@@ -1,12 +1,12 @@
 name: Publish new release
-#on:
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - argparse.h
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - argparse.h
 
-on: workflow_dispatch
+#on: workflow_dispatch
 
 jobs:
   new-release:
@@ -40,7 +40,6 @@ jobs:
       with:
         tag_name: ${{ steps.newVersion.outputs.value }}
         files: argparse.h
-        body: " "
 
 
         

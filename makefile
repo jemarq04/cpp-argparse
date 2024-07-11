@@ -7,14 +7,14 @@ $(CLASS):
 	@rm -f $(COMBINED)
 	@while IFS= read -r line; do\
 		[[ $$line == "};"* ]] && break;\
-		printf "%s\n" "$$line" >> $@;\
+		printf "%s\n" "$$line" >> $(COMBINED);\
 	done < $(CLASS).h
-	@echo >> $@
+	@echo >> $(COMBINED)
 	@found=0
 	@while IFS= read -r line; do\
 		[[ $$line == "// ==="* ]] && found=1;\
 		[[ found -eq 0 ]] && continue;\
-		printf "\t%s\n" "$${line/argparse::/}" >> $@;\
+		printf "\t%s\n" "$${line/argparse::/}" >> $(COMBINED);\
 	done < $(CLASS).cpp
-	@printf "\t//}}}1\n};\n\n#endif//ARGUMENT_PARSER" >> $@
+	@printf "\t//}}}1\n};\n\n#endif//ARGUMENT_PARSER" >> $(COMBINED)
 	@echo "Target $(COMBINED) successfully created."

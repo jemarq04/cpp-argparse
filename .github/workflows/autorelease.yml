@@ -1,12 +1,12 @@
 name: Publish new release
-#on:
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - argparse.h
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - argparse.h
 
-on: workflow_dispatch
+#on: workflow_dispatch
 
 jobs:
   new-release:
@@ -31,24 +31,15 @@ jobs:
         cat makefile
         make
         mv argparse-combined.h argparse.h
+    - name: Create release
+      if: ${{ steps.oldVersion.outputs.tag != steps.newVersion.outputs.value }}
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.newVersion.outputs.value }}
+        files: argparse.h
+
+
         
-#    - name: Create release
-#      if: ${{ steps.oldVersion.outputs.tag != steps.newVersion.outputs.value }}
-#      id: create_release
-#      uses: actions/create-release@v1
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      with:
-#        tag_name: ${{ steps.newVersion.outputs.value }}
-#        release_name: ${{ steps.newVersion.outputs.value }}
-#    - name: Upload release asset
-#      if: ${{ steps.oldVersion.outputs.tag != steps.newVersion.outputs.value }}
-#      uses: actions/upload-release-asset@v1
-#      with:
-#        upload_url: ${{ steps.create_release.outputs.upload_url }}
-#        asset_path: argparse.h
-#        asset_name: argparse.h
-      
-      
-        
-      

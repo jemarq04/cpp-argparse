@@ -1,8 +1,9 @@
 CLASS=argparse
 COMBINED=$(CLASS)-combined.h
 
-.PHONY: $(COMBINED)
-$(COMBINED):
+.PHONY: $(CLASS)
+$(CLASS): SHELL:=/bin/bash
+$(CLASS):
 	@rm -f $(COMBINED)
 	@while IFS= read -r line; do\
 		[[ $$line == "};"* ]] && break;\

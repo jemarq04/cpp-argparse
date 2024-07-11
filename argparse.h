@@ -45,11 +45,17 @@ namespace argparse{
 			for (auto& val : vals) push_back(val);
 		}
 
+		ArgumentValueList& operator=(const std::string& other){
+			clear();
+			push_back(other);
+			return *this;
+		}
 		ArgumentValueList& operator=(const std::vector<std::string>& other){
 			clear();
 			for (auto& val : other) push_back(val);
 			return *this;
 		}
+
 		operator int(){return strtol(at(0).c_str(), nullptr, 10);}
 		operator float(){return strtof(at(0).c_str(), nullptr);}
 		operator double(){return strtod(at(0).c_str(), nullptr);}

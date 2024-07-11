@@ -25,6 +25,30 @@ jobs:
       uses: WyriHaximus/github-action-get-previous-tag@v1
     - name: Print versions
       run: echo "${{ steps.oldVersion.outputs.tag }} => ${{ steps.newVersion.outputs.value }}"
+    - name: Create release asset
+      if: ${{ steps.oldVersion.outputs.tag != steps.newVersion.outputs.value }}
+      run: |
+        cat makefile
+        make
+        mv argparse-combined.h argparse.h
+        
+#    - name: Create release
+#      if: ${{ steps.oldVersion.outputs.tag != steps.newVersion.outputs.value }}
+#      id: create_release
+#      uses: actions/create-release@v1
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        tag_name: ${{ steps.newVersion.outputs.value }}
+#        release_name: ${{ steps.newVersion.outputs.value }}
+#    - name: Upload release asset
+#      if: ${{ steps.oldVersion.outputs.tag != steps.newVersion.outputs.value }}
+#      uses: actions/upload-release-asset@v1
+#      with:
+#        upload_url: ${{ steps.create_release.outputs.upload_url }}
+#        asset_path: argparse.h
+#        asset_name: argparse.h
+      
       
         
       

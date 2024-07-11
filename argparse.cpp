@@ -2,19 +2,12 @@
 using namespace argparse;
 
 // === HELPERS === {{{1
-int argparse::as_int(std::string str){
-	return strtol(str.c_str(), nullptr, 10);
+std::ostream& operator<<(std::ostream& os, const ArgumentValueList& arglist){
+	os << arglist.str();
+	return os;
 }
-float argparse::as_float(std::string str){
-	return strtof(str.c_str(), nullptr);
-}
-double argparse::as_double(std::string str){
-	return strtod(str.c_str(), nullptr);
-}
-bool argparse::as_bool(std::string str){
-	return (str == TRUE);
-}
-std::string argparse::format_args(std::map<std::string, std::vector<std::string>> args){
+
+std::string argparse::format_args(ArgumentMap args){
 	std::string result = "Namespace(";
 	bool first = true;
 	for (const auto& it : args){
@@ -35,10 +28,9 @@ std::string argparse::format_args(std::map<std::string, std::vector<std::string>
 	result += ")";
 	return result;
 }
-void argparse::print_args(std::map<std::string, std::vector<std::string>> args, std::ostream& out){
+void argparse::print_args(ArgumentMap args, std::ostream& out){
 	out << format_args(args) << std::endl;
 }
-
 
 // === ARGUMENT PARSER === {{{1
 // 
@@ -318,8 +310,7 @@ void ArgumentParser::print_help(std::ostream& out){
 }
 
 // Parser {{{2
-std::map<std::string, std::vector<std::string>> ArgumentParser::parse_args(
-		std::vector<std::string> argv){
+ArgumentMap ArgumentParser::parse_args(std::vector<std::string> argv){
 	if (argv.size() != 0){
 		_args = argv;
 		_nargs = argv.size();
@@ -328,7 +319,7 @@ std::map<std::string, std::vector<std::string>> ArgumentParser::parse_args(
 		_args = read_args_from_files(_args);
 		_nargs = _args.size();
 	}
-	std::map<std::string, std::vector<std::string>> args;
+	ArgumentMap args;
 	for (const auto& it : _defaults)
 		args[it.first] = std::vector<std::string>{it.second};
 	

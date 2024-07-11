@@ -1,0 +1,45 @@
+name: Publish new release
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - argparse.h
+
+#on: workflow_dispatch
+
+jobs:
+  new-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+      with: 
+        fetch-depth: 0
+    - name: Get new version
+      id: newVersion
+      run: echo "value=v$(grep 'ARGPARSE_VERSION' argparse.h | sed 's/.*ARGPARSE_VERSION //')" >> "$GITHUB_OUTPUT"
+    - name: Get old version
+      id: oldVersion
+      uses: WyriHaximus/github-action-get-previous-tag@v1
+    - name: Print versions
+      run: echo "${{ steps.oldVersion.outputs.tag }} => ${{ steps.newVersion.outputs.value }}"
+    - name: Create release asset
+      if: ${{ steps.oldVersion.outputs.tag != steps.newVersion.outputs.value }}
+      run: |
+        cat makefile
+        make
+        mv argparse-combined.h argparse.h
+    - name: Create release
+      if: ${{ steps.oldVersion.outputs.tag != steps.newVersion.outputs.value }}
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.newVersion.outputs.value }}
+        files: argparse.h
+
+
+        

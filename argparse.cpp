@@ -1,12 +1,154 @@
 #include "argparse.h"
 using namespace argparse;
 
-// === HELPERS === {{{1
+// === ARGUMENT VALUES === {{{1
+//
+// Assignment Operators {{{2
+template <>
+ArgumentValue& ArgumentValue::operator=<bool>(const bool& other){
+	*this = other? TRUE : FALSE;
+	return *this;
+}
+
+// Casting Operators {{{2
+ArgumentValue::operator int() const{return strtol(c_str(), nullptr, 10);}
+ArgumentValue::operator float() const{return strtof(c_str(), nullptr);}
+ArgumentValue::operator double() const{return strtod(c_str(), nullptr);}
+ArgumentValue::operator bool() const{return *this == TRUE;}
+
+// Comparison Operators {{{2
+bool ArgumentValue::operator==(const char* other) const{
+	return *this == std::string(other);
+}
+bool ArgumentValue::operator> (const char* other) const{
+	return *this >  std::string(other);
+}
+bool ArgumentValue::operator< (const char* other) const{
+	return *this <  std::string(other);
+}
+bool ArgumentValue::operator!=(const char* other) const{
+	return *this != std::string(other);
+}
+bool ArgumentValue::operator>=(const char* other) const{
+	return *this >= std::string(other);
+}
+bool ArgumentValue::operator<=(const char* other) const{
+	return *this <= std::string(other);
+}
+
+// Arithmetic Operators {{{2
+ArgumentValue ArgumentValue::operator+(const char* other) const{
+	return (std::string)c_str() + other;
+}
+
+// Increment/Decrement Operators {{{2
+ArgumentValue& ArgumentValue::operator++(){
+	return *this = *this + 1;
+}
+ArgumentValue& ArgumentValue::operator--(){
+	return *this = *this - 1;
+}
+ArgumentValue  ArgumentValue::operator++(int){
+	ArgumentValue temp = *this;
+	*this = *this + 1;
+	return temp;
+}
+ArgumentValue  ArgumentValue::operator--(int){
+	ArgumentValue temp = *this;
+	*this = *this - 1;
+	return temp;
+}
+
+// Accessors {{{2
+bool ArgumentValue::is_none() const{return *this == NONE;}
+
+// === ARGUMENT VALUE LIST === {{{1
+//
+// Constructor {{{2
+ArgumentValueList::ArgumentValueList(std::initializer_list<ArgumentValue> vals){
+	for (auto & val : vals) push_back(val);
+}
+
+// Assignment Operators {{{2
+ArgumentValueList& ArgumentValueList::operator=(const std::vector<std::string>& other){
+	clear();
+	for (auto& val : other) push_back(val);
+	return *this;
+}
+
+// Casting Operators {{{2
+ArgumentValueList::operator int() const{return strtol(at(0).c_str(), nullptr, 10);}
+ArgumentValueList::operator float() const{return strtof(at(0).c_str(), nullptr);}
+ArgumentValueList::operator double() const{return strtod(at(0).c_str(), nullptr);}
+ArgumentValueList::operator bool() const{return at(0) == TRUE;}
+ArgumentValueList::operator std::string() const{return at(0);}
+
+// Comparison Operators {{{2
+bool ArgumentValueList::operator==(const char* other) const{
+	return at(0) == std::string(other);
+}
+bool ArgumentValueList::operator> (const char* other) const{
+	return at(0) >  std::string(other);
+}
+bool ArgumentValueList::operator< (const char* other) const{
+	return at(0) <  std::string(other);
+}
+bool ArgumentValueList::operator!=(const char* other) const{
+	return at(0) != std::string(other);
+}
+bool ArgumentValueList::operator>=(const char* other) const{
+	return at(0) >= std::string(other);
+}
+bool ArgumentValueList::operator<=(const char* other) const{
+	return at(0) <= std::string(other);
+}
+
+// Arithmetic Operators {{{2
+ArgumentValueList ArgumentValueList::operator+(const char* other) const{
+	ArgumentValueList temp;
+	temp.push_back((std::string)at(0).c_str() + other);
+	return temp;
+}
+
+// Increment/Decrement Operators {{{2
+ArgumentValueList& ArgumentValueList::operator++(){
+	return *this = *this + 1;
+}
+ArgumentValueList& ArgumentValueList::operator--(){
+	return *this = *this - 1;
+}
+ArgumentValueList  ArgumentValueList::operator++(int){
+	ArgumentValueList temp = *this;
+	*this = *this + 1;
+	return temp;
+}
+ArgumentValueList  ArgumentValueList::operator--(int){
+	ArgumentValueList temp = *this;
+	*this = *this - 1;
+	return temp;
+}	
+
+// Stream Operators {{{2
 std::ostream& operator<<(std::ostream& os, const ArgumentValueList& arglist){
 	os << arglist.str();
 	return os;
 }
 
+// Modifiers {{{2
+void ArgumentValueList::str(const std::string& val){at(0) = val;}
+
+// Accessors {{{2
+std::string ArgumentValueList::str() const{return at(0);}
+const char* ArgumentValueList::c_str() const{return at(0).c_str();}
+bool ArgumentValueList::is_none() const{return at(0) == NONE;}
+std::vector<std::string> ArgumentValueList::vec() const{
+	std::vector<std::string> result;
+	for (auto& val : *this) result.push_back((std::string)val);
+	return result;
+}
+
+
+// === HELPERS === {{{1
 std::string argparse::format_args(ArgumentMap args){
 	std::string result = "Namespace(";
 	bool first = true;

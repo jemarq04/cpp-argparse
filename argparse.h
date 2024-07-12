@@ -1,7 +1,8 @@
 #ifndef ARGPARSE_H
 #define ARGPARSE_H
-#define ARGPARSE_VERSION 2.2.2
+#define ARGPARSE_VERSION 2.2.3
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <sys/ioctl.h>
 #include <string>
@@ -31,42 +32,220 @@ namespace argparse{
 	public:
 		template <typename ... Args>
 		ArgumentValue(Args ... args) : std::string(args ...){}
-		
-		operator int(){return strtol(c_str(), nullptr, 10);}
-		operator float(){return strtof(c_str(), nullptr);}
-		operator double(){return strtod(c_str(), nullptr);}
-		operator bool(){return *this == TRUE;}
 
-		bool is_none(){return *this == NONE;}
+		// Assignment Operators
+		template <typename T>
+		ArgumentValue& operator=(const T& other){
+			std::stringstream ss;
+			ss << other;
+			std::string::operator=(ss.str());
+			return *this;
+		}
+		template <typename T>
+		ArgumentValue& operator+=(const T& other){return *this = *this + other;}
+		template <typename T>
+		ArgumentValue& operator-=(const T& other){return *this = *this - other;}
+		template <typename T>
+		ArgumentValue& operator*=(const T& other){return *this = *this * other;}
+		template <typename T>
+		ArgumentValue& operator/=(const T& other){return *this = *this / other;}
+		template <typename T>
+		ArgumentValue& operator%=(const T& other){return *this = *this % other;}
+		
+		// Casting Operators
+		operator int() const;
+		operator float() const;
+		operator double() const;
+		operator bool() const;
+		
+		// Comparison Operators
+		template <typename T>
+		bool operator==(const T& other) const{
+			return (T)*this == other;
+		}
+		template <typename T>
+		bool operator> (const T& other) const{
+			return (T)*this > other;
+		}
+		template <typename T>
+		bool operator< (const T& other) const{
+			return (T)*this < other;
+		}
+		template <typename T>
+		bool operator!=(const T& other) const{
+			return (T)*this != other;
+		}
+		template <typename T>
+		bool operator>=(const T& other) const{
+			return (T)*this >= other;
+		}
+		template <typename T>
+		bool operator<=(const T& other) const{
+			return (T)*this <= other;
+		}
+		bool operator==(const char* other) const;
+		bool operator> (const char* other) const;
+		bool operator< (const char* other) const;
+		bool operator!=(const char* other) const;
+		bool operator>=(const char* other) const;
+		bool operator<=(const char* other) const;
+
+		// Arithmetic Operators
+		template <typename T>
+		ArgumentValue operator+(const T& other) const{
+			ArgumentValue temp;
+			return temp = (T)*this + other;
+		}
+		template <typename T>
+		ArgumentValue operator-(const T& other) const{
+			ArgumentValue temp;
+			return temp = (T)*this - other;
+		}
+		template <typename T>
+		ArgumentValue operator*(const T& other) const{
+			ArgumentValue temp;
+			return temp = (T)*this * other;
+		}
+		template <typename T>
+		ArgumentValue operator/(const T& other) const{
+			ArgumentValue temp;
+			return temp = (T)*this / other;
+		}
+		template <typename T>
+		ArgumentValue operator%(const T& other) const{
+			ArgumentValue temp;
+			return temp = (T)*this % other;
+		}
+		ArgumentValue operator+(const char* other) const;
+
+		// Increment/Decrement Operators
+		ArgumentValue& operator++();
+		ArgumentValue& operator--();
+		ArgumentValue  operator++(int);
+		ArgumentValue  operator--(int);
+
+		// Accessors
+		bool is_none() const;
 	};
+
+
 	class ArgumentValueList : public std::vector<ArgumentValue>{
 	public:
-		ArgumentValueList(std::initializer_list<ArgumentValue> vals={}){
-			for (auto& val : vals) push_back(val);
-		}
+		ArgumentValueList(std::initializer_list<ArgumentValue> vals={});
 
-		ArgumentValueList& operator=(const std::string& other){
+		// Assignment Operators
+		ArgumentValueList& operator=(const std::vector<std::string>& other);
+		template <typename T>
+		ArgumentValueList& operator=(const T& other){
 			clear();
-			push_back(other);
+			push_back("");
+			at(0) = other;
 			return *this;
 		}
-		ArgumentValueList& operator=(const std::vector<std::string>& other){
-			clear();
-			for (auto& val : other) push_back(val);
-			return *this;
-		}
+		template <typename T>
+		ArgumentValueList& operator+=(const T& other){return *this = *this + other;}
+		template <typename T>
+		ArgumentValueList& operator-=(const T& other){return *this = *this - other;}
+		template <typename T>
+		ArgumentValueList& operator*=(const T& other){return *this = *this * other;}
+		template <typename T>
+		ArgumentValueList& operator/=(const T& other){return *this = *this / other;}
+		template <typename T>
+		ArgumentValueList& operator%=(const T& other){return *this = *this % other;}
 
-		operator int(){return strtol(at(0).c_str(), nullptr, 10);}
-		operator float(){return strtof(at(0).c_str(), nullptr);}
-		operator double(){return strtod(at(0).c_str(), nullptr);}
-		operator bool(){return at(0) == TRUE;}
-		operator std::string(){return at(0);}
+		// Casting Operators
+		operator int() const;
+		operator float() const;
+		operator double() const;
+		operator bool() const;
+		operator std::string() const;
+
+		// Comparison Operators
+		template <typename T>
+		bool operator==(const T& other) const{
+			return (T)at(0) == other;
+		}
+		template <typename T>
+		bool operator> (const T& other) const{
+			return (T)at(0) > other;
+		}
+		template <typename T>
+		bool operator< (const T& other) const{
+			return (T)at(0) < other;
+		}
+		template <typename T>
+		bool operator!=(const T& other) const{
+			return (T)at(0) != other;
+		}
+		template <typename T>
+		bool operator>=(const T& other) const{
+			return (T)at(0) >= other;
+		}
+		template <typename T>
+		bool operator<=(const T& other) const{
+			return (T)at(0) <= other;
+		}
+		bool operator==(const char* other) const;
+		bool operator> (const char* other) const;
+		bool operator< (const char* other) const;
+		bool operator!=(const char* other) const;
+		bool operator>=(const char* other) const;
+		bool operator<=(const char* other) const;
+
+		// Arithmetic Operators
+		template <typename T>
+		ArgumentValueList operator+(const T& other) const{
+			ArgumentValueList temp;
+			temp.push_back("");
+			temp.at(0) = (T)at(0) + other;
+			return temp;
+		}
+		template <typename T>
+		ArgumentValueList operator-(const T& other) const{
+			ArgumentValueList temp;
+			temp.push_back("");
+			temp.at(0) = (T)at(0) - other;
+			return temp;
+		}
+		template <typename T>
+		ArgumentValueList operator*(const T& other) const{
+			ArgumentValueList temp;
+			temp.push_back("");
+			temp.at(0) = (T)at(0) * other;
+			return temp;
+		}
+		template <typename T>
+		ArgumentValueList operator/(const T& other) const{
+			ArgumentValueList temp;
+			temp.push_back("");
+			temp.at(0) = (T)at(0) / other;
+			return temp;
+		}
+		template <typename T>
+		ArgumentValueList operator%(const T& other) const{
+			ArgumentValueList temp;
+			temp.push_back("");
+			temp.at(0) = (T)at(0) % other;
+			return temp;
+		}
+		ArgumentValueList operator+(const char* other) const;
+
+		// Increment/Decrement Operators
+		ArgumentValueList& operator++();
+		ArgumentValueList& operator--();
+		ArgumentValueList  operator++(int);
+		ArgumentValueList  operator--(int);
+
+		// Stream Operators
 		friend std::ostream& operator<<(std::ostream& os, const ArgumentValueList& arglist);
+		// Modifiers
+		void str(const std::string &val);
 
-		std::string str() const{return at(0);}
-		void str(const std::string &val){at(0) = val;}
-		const char* c_str() const{return at(0).c_str();}
-		bool is_none(){return at(0) == NONE;}
+		// Accessors
+		std::string str() const;
+		const char* c_str() const;
+		bool is_none() const;
+		std::vector<std::string> vec() const;
 	};
 	typedef std::map<std::string, ArgumentValueList> ArgumentMap;
 	std::string format_args(ArgumentMap args);

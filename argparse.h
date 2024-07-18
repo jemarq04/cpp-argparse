@@ -293,9 +293,10 @@ namespace argparse{
 			Argument& help(std::string="");
 			Argument& metavar(std::string metavar, char delim=',');
 			Argument& def(std::string def, char delim=',');
-			Argument& constant(std::string con, char delim=',');
 			Argument& version(std::string version);
 			Argument& print_help();
+
+			Argument& constant(std::string con, char delim=',');
 			Argument& count();
 			
 		private:
@@ -443,12 +444,15 @@ namespace argparse{
 		ArgumentParser& usage(std::string usage);
 		ArgumentParser& description(std::string desc);
 		ArgumentParser& epilog(std::string epilog);
-		ArgumentParser& add_help(bool add_help);
-		ArgumentParser& argument_default(std::string none);
 		ArgumentParser& parent(const ArgumentParser& parser);
-		ArgumentParser& conflict_handler(std::string name);
 		ArgumentParser& formatter_class(HelpFormatter format);
+		//prefix_chars()
 		ArgumentParser& fromfile_prefix_chars(std::string prefix);
+		ArgumentParser& argument_default(std::string def);
+		//allow_abrev()
+		ArgumentParser& conflict_handler(std::string name);
+		ArgumentParser& add_help(bool add_help);
+		//exit_on_error()
 		
 		ArgumentParser& set_defaults(std::map<std::string, std::string> defaults);
 		ArgumentParser& help(std::string help);

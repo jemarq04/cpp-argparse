@@ -44,7 +44,8 @@ parser.add_argument<bool>("--sum").dest("accumulate")
 	.constant("sum").def("max")
 	.help("sum the integers (default: find the max)");
 ```
-Note that the `action` keyword argument in python's `argparse` module is replaced by different chain modifiers. For more, [see here](#placeholder).
+Note that the `action` keyword argument in python's `argparse` module is replaced by different chain modifiers. For more information on
+`argparse::Argument` chain modifiers, [see here](#placeholder).
 Additionally, the `default` keyword argument is replaced by the `ArgumentParser::def(...)` chain modifier, since `default` is a C++ keyword. Finally,
 we need to parse command-line arguments. For this example, we will instead feed in arguments into the function itself. (Note that the seperator `--`
 is used to denote the end of optional arguments. This will help the parser recognize `-1` as a negative number and not an optional argument.)
@@ -57,6 +58,33 @@ If no argument is passed into `ArgumentParser::parse_args(...)`, then the comman
 
 ## Chain Modifiers
 
+Here we will examine each of the chain modifiers available for customizing `ArgumentParser` instances.
+
+### `prog()`
+
+By default, the `ArgumentParser` will use the first element in `argv` to determine the name of the calling script. For example, consider an executable
+named `main` with the following code:
+```C++
+auto parser = argparse::ArgumentParser(nargs, argv);
+parser.print_help();
+//Prints:
+//usage: main [-h]
+//
+//options:
+//  -h, --help  show this help message and exit
+```
+If we wanted a different name to be displayed, we can alter this with the `ArgumentParser::prog(...)` modifier like the following.
+```C++
+auto parser = argparse::ArgumentParser(nargs, argv).prog("ProgramName");
+parser.print_help();
+//Prints:
+//usage: ProgramName [-h]
+//
+//options:
+//  -h, --help  show this help message and exit
+```
+
+### `usage()`
 
 # Placeholder
 

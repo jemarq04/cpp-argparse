@@ -31,7 +31,8 @@ Most keyword arguments available in python's `argparse` module are available as 
 we can modify more of the help text by creating a parser with the following.
 ```C++
 auto parser = argparse::ArgumentParser(nargs, argv).prog("ProgramName")
-	.description("Detailed description of the script.").epilog("Text at the bottom of the help screen");
+	.description("Detailed description of the script.")
+	.epilog("Text at the bottom of the help screen");
 ```
 Afterwards, we would want to add arguments to this example parser. We would do this by calling the `ArgumentParser::add_argument<T>(...)` method. This
 method is templated and can accept most built-in types (`int`, `float`, `double`, `bool`, and `std::string`). By default, if no type is provided, the

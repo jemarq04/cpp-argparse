@@ -46,7 +46,7 @@ parser.add_argument<bool>("--sum").dest("accumulate")
 	.help("sum the integers (default: find the max)");
 ```
 Note that the `action` keyword argument in python's `argparse` module is replaced by different chain modifiers and the keyword argument `default` is
-replaced by the modifier `Argument::def(...)`.
+replaced by the modifier `Argument::def(string)`.
 Finally, we need to parse command-line arguments. For this example, we will instead feed in arguments into the function itself. (Note that the 
 seperator `--` is used to denote the end of optional arguments. This will help the parser recognize `-1` as a negative number and not an 
 optional argument.)
@@ -55,10 +55,10 @@ auto args = parser.parse_args(vector<string>{"--sum", "--", "7", "-1", "2"});
 argparse::print_args(args);
 // Prints: Namespace(accumulate=[sum],integers=[7,-1,2])
 ```
-If no argument is passed into `ArgumentParser::parse_args(...)`, then the command-line arguments provided in the constructor will be used as expected.
+If no argument is passed into `ArgumentParser::parse_args(vector<string>)`, then the command-line arguments provided in the constructor will be used as expected.
 Note that this parser cannot yet recognize abbreviations of long options.
 
-### Chain Modifiers
+### Chain modifiers
 
 Chain modifiers that are not yet implemented include `prefix_chars()`, `exit_on_error()`, and `allow_abrev()`. For now, exitting on errors is done by
 default and abbreviation recognition are not yet supported. 
@@ -77,10 +77,10 @@ parser.add_argument<int>("-n", "--num").nargs(3).help("your favorite numbers");
 parser.parse_args(vector<string>{"--num", "1", "2", "3"});
 ```
 Note that instead of using a chain modifier for the `type` keyword argument, instead the function is templated for common built-in types. Another
-notable difference is default values are provided by `Argument::def(...)` instead of `default`. The chain modifiers `metavar(...)`, `constant(...)`,
+notable difference is default values are provided by `Argument::def(string)` instead of `default`. The chain modifiers `metavar(...)`, `constant(...)`,
 and `choices(...)` all take a delimited string as the first argument and an optional delimiter character (defaulted to `,`).
 
-### The `nargs()` Chain Modifier
+### The `nargs()` chain modifier
 
 There are three ways to provide the number of arguments to parse to an `Argument` instance: `Argument::nargs(int)`, `Argument::nargs(char)`, and
 `Argument::nargs(string)`. Currently, the python's `argparse` module's `argparse.REMAINDER` is not fully implemented. While it can be provided, it
@@ -102,11 +102,33 @@ arguments from the command-line.
 
 More actions will be implemented. Feel free to create an issue requesting certain actions.
 
-## Other Utilities
+## The `parse_args()` Method
+
+Placeholder text.
+
+## Other utilities
 
 Not all of python's `argparse` module has been re-created here. Those that have been added are explained below. If a feature is not mentioned, it is
 safe to assume it has not yet been implemented.
 
 ### Sub-commands
+
+Sub-commands work essentially the same as in python. A notable difference is that there is no option to change the "parser class" of the subparsers,
+so they are all restricted to the `ArgumentParser` class. There are no plans to add this currently.
+
+### Parser defaults
+
+To set parser-level defaults, you can use the `ArgumentParser::set_defaults(map<string,string>)` method. Instead of arbitrarily-named keyword
+arguments, the method takes in a mapping of a string to a string to set the defaults. For example, you could set a parser-level default with the
+following code.
+```C++
+auto parser = argparse::ArgumentParser(nargs, argv);
+parser.add_argument("-f", "--foo").def("bar").help("foo help");
+parser.set_defaults(map<string,string>{ {"foo", "spam"} });
+auto parser.parse_args(vector<string>{""});
+//Namespace(foo=[spam])
+```
+Retrieving the defaults of arguments can be done with the `ArgumentParser::get_default(std::string)` method. This will return an `ArgumentValueList`,
+just like from `ArgumentParser::parse_args()`.
 
 (Documentation WIP. More will be added soon.)

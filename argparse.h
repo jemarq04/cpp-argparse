@@ -1,6 +1,6 @@
 #ifndef ARGPARSE_H
 #define ARGPARSE_H
-#define ARGPARSE_VERSION 2.2.3_1
+#define ARGPARSE_VERSION 2.2.4
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -132,6 +132,7 @@ namespace argparse{
 	class ArgumentValueList : public std::vector<ArgumentValue>{
 	public:
 		ArgumentValueList(std::initializer_list<ArgumentValue> vals={});
+		ArgumentValueList(std::vector<std::string> vals);
 
 		// Assignment Operators
 		ArgumentValueList& operator=(const std::vector<std::string>& other);
@@ -195,36 +196,31 @@ namespace argparse{
 		// Arithmetic Operators
 		template <typename T>
 		ArgumentValueList operator+(const T& other) const{
-			ArgumentValueList temp;
-			temp.push_back("");
+			ArgumentValueList temp = {""};
 			temp.at(0) = (T)at(0) + other;
 			return temp;
 		}
 		template <typename T>
 		ArgumentValueList operator-(const T& other) const{
-			ArgumentValueList temp;
-			temp.push_back("");
+			ArgumentValueList temp = {""};
 			temp.at(0) = (T)at(0) - other;
 			return temp;
 		}
 		template <typename T>
 		ArgumentValueList operator*(const T& other) const{
-			ArgumentValueList temp;
-			temp.push_back("");
+			ArgumentValueList temp = {""};
 			temp.at(0) = (T)at(0) * other;
 			return temp;
 		}
 		template <typename T>
 		ArgumentValueList operator/(const T& other) const{
-			ArgumentValueList temp;
-			temp.push_back("");
+			ArgumentValueList temp = {""};
 			temp.at(0) = (T)at(0) / other;
 			return temp;
 		}
 		template <typename T>
 		ArgumentValueList operator%(const T& other) const{
-			ArgumentValueList temp;
-			temp.push_back("");
+			ArgumentValueList temp = {""};
 			temp.at(0) = (T)at(0) % other;
 			return temp;
 		}
@@ -247,6 +243,10 @@ namespace argparse{
 		bool is_none() const;
 		std::vector<std::string> vec() const;
 	};
+	std::ostream& operator<<(std::ostream& os, const ArgumentValueList& arglist){
+		os << arglist.str();
+		return os;
+	}
 	typedef std::map<std::string, ArgumentValueList> ArgumentMap;
 	std::string format_args(ArgumentMap args);
 	void print_args(ArgumentMap args, std::ostream& out=std::cout);
@@ -439,7 +439,7 @@ namespace argparse{
 		
 		SubparserList& add_subparsers();
 		
-		// Chain Modifiers
+		// Chain Modifiers (TODO)
 		ArgumentParser& prog(std::string prog);
 		ArgumentParser& usage(std::string usage);
 		ArgumentParser& description(std::string desc);
@@ -461,7 +461,7 @@ namespace argparse{
 		
 		// Accessors
 		std::string get_prog() const;
-		std::vector<std::string> get_default(std::string name) const;
+		ArgumentValueList get_default(std::string name) const;
 		std::string format_usage();
 		std::string format_help();
 		void print_usage(std::ostream& out=std::cout);

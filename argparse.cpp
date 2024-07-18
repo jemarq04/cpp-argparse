@@ -64,9 +64,12 @@ bool ArgumentValue::is_none() const{return *this == NONE;}
 
 // === ARGUMENT VALUE LIST === {{{1
 //
-// Constructor {{{2
+// Constructors {{{2
 ArgumentValueList::ArgumentValueList(std::initializer_list<ArgumentValue> vals){
-	for (auto & val : vals) push_back(val);
+	for (auto& val : vals) push_back(val);
+}
+ArgumentValueList::ArgumentValueList(std::vector<std::string> vals){
+	for (auto& val : vals) push_back(val);
 }
 
 // Assignment Operators {{{2
@@ -105,8 +108,7 @@ bool ArgumentValueList::operator<=(const char* other) const{
 
 // Arithmetic Operators {{{2
 ArgumentValueList ArgumentValueList::operator+(const char* other) const{
-	ArgumentValueList temp;
-	temp.push_back((std::string)at(0).c_str() + other);
+	ArgumentValueList temp = {(std::string)at(0).c_str() + other};
 	return temp;
 }
 
@@ -127,12 +129,6 @@ ArgumentValueList  ArgumentValueList::operator--(int){
 	*this = *this - 1;
 	return temp;
 }	
-
-// Stream Operators {{{2
-std::ostream& operator<<(std::ostream& os, const ArgumentValueList& arglist){
-	os << arglist.str();
-	return os;
-}
 
 // Modifiers {{{2
 void ArgumentValueList::str(const std::string& val){at(0) = val;}
@@ -420,7 +416,10 @@ ArgumentParser& ArgumentParser::set_linecap(int linecap){
 
 // Accessors {{{2
 std::string ArgumentParser::get_prog() const{return _prog;}
-std::vector<std::string> ArgumentParser::get_default(std::string name) const{
+ArgumentValueList ArgumentParser::get_default(std::string name) const{
+	for (const auto& it : _defaults)
+		if (it.first == name)
+			return std::vector<std::string>{it.second};
 	for (const auto& arg : _optlist)
 		if (arg._dest == name)
 			return arg._def;
@@ -806,6 +805,7 @@ ArgumentMap ArgumentParser::parse_args(std::vector<std::string> argv){
 
 	std::string reqlist = "";
 	for (int i=0; i<_optlist.size(); i++){
+		bool parser_def = args.find(_optlist[i]._dest) != args.end();
 		if (_optlist[i]._action == Action::Version || _optlist[i]._action == Action::Help)
 			continue;
 		if (!_optlist[i]._found){
@@ -815,7 +815,7 @@ ArgumentMap ArgumentParser::parse_args(std::vector<std::string> argv){
 				else
 					reqlist += ", " + _optlist[i].get_id();
 			}
-			else if (_optlist[i]._has_default){
+			else if (_optlist[i]._has_default && !parser_def){
 				_optlist[i]._val = _optlist[i]._def;
 				_optlist[i]._found = true;
 			}
@@ -827,7 +827,7 @@ ArgumentMap ArgumentParser::parse_args(std::vector<std::string> argv){
 		
 		if (_optlist[i]._found)
 			args[_optlist[i]._dest] = _optlist[i]._val;
-		else if (_none_str != SUPPRESS)
+		else if (_none_str != SUPPRESS && !parser_def)
 			args[_optlist[i]._dest] = std::vector<std::string>{_none_str};
 	}
 	// Positional Arguments

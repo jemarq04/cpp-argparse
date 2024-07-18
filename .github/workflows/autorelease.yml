@@ -19,7 +19,7 @@ jobs:
         fetch-depth: 0
     - name: Get new version
       id: newVersion
-      run: echo "value=v$(grep 'ARGPARSE_VERSION' argparse.h | sed 's/.*ARGPARSE_VERSION //')" >> "$GITHUB_OUTPUT"
+      run: echo "value=v$(grep 'ARGPARSE_VERSION' argparse.h | sed 's/.*ARGPARSE_VERSION //' | sed 's/_.*//')" >> "$GITHUB_OUTPUT"
     - name: Get old version
       id: oldVersion
       uses: WyriHaximus/github-action-get-previous-tag@v1

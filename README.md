@@ -21,7 +21,7 @@ int main(int nargs, char** argv){
 }
 ```
 
-# Creating an ArgumentParser Class
+# `ArgumentParser` Class
 
 First, we need to create an argument parser instance. This can be created simply using the `ArgumentParser` class's only constructor. The variables 
 passed into the constructor are the same as in the template in the the [previous section](#using-cpp-argparse).
@@ -56,8 +56,17 @@ argparse::print_args(args);
 // Prints: Namespace(accumulate=[sum],integers=[7,-1,2])
 ```
 If no argument is passed into `ArgumentParser::parse_args(...)`, then the command-line arguments provided in the constructor will be used as expected.
+Note that this parser cannot yet recognize abbreviations of long options.
 
 ## Chain Modifiers
+
+Chain modifiers that are not yet implemented include `prefix_chars()`, `exit_on_error()`, and `allow_abrev()`. For now, exitting on errors is done by
+default and abbreviation recognition are not yet supported. 
+
+The `parents` keyword argument is now the `ArgumentParser::parent(const ArgumentParser&)` chain modifier. Rather than accepting a list of 
+parser instances, this will only take one and add the optional and positional arguments from it.
+
+# Adding arguments with `add_argument()`
 
 # Placeholder
 

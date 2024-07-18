@@ -36,7 +36,7 @@ auto parser = argparse::ArgumentParser(nargs, argv).prog("ProgramName")
 	.epilog("Text at the bottom of the help screen.");
 ```
 Afterwards, we would want to add arguments to this example parser. We would do this by calling the `ArgumentParser::add_argument<T>(...)` method. This
-method is templated and can accept most built-in types (`int`, `float`, `double`, `bool`, and `std::string`). By default, if no type is provided, the
+method is templated and can accept common built-in types (`int`, `float`, `double`, `bool`, and `std::string`). By default, if no type is provided, the
 method will add a string argument.
 ```C++
 parser.add_argument<int>("integers").metavar("N").nargs("+")
@@ -46,7 +46,7 @@ parser.add_argument<bool>("--sum").dest("accumulate")
 	.help("sum the integers (default: find the max)");
 ```
 Note that the `action` keyword argument in python's `argparse` module is replaced by different chain modifiers and the keyword argument `default` is
-replaced by the modifier `Argument::def(...)`. This will be described further in the [following section](#placeholder) on adding arguments.
+replaced by the modifier `Argument::def(...)`.
 Finally, we need to parse command-line arguments. For this example, we will instead feed in arguments into the function itself. (Note that the 
 seperator `--` is used to denote the end of optional arguments. This will help the parser recognize `-1` as a negative number and not an 
 optional argument.)
@@ -68,6 +68,45 @@ parser instances, this will only take one and add the optional and positional ar
 
 ## Adding arguments with `add_argument<T>()`
 
-## Placeholder
+Using this method, we can define how command-line arguments should be parsed. The `ArgumentParser::add_argument<T>(...)` method returns a reference to
+an `Argument` instance, allowing the use of the class's own chain modifiers. Once again, these chain modifiers replace the use of keyword arguments in
+python's module. For example, if we wanted to add an optional integer argument that accepts three numbers, we could write the following code.
+```C++
+auto parser = argparse::ArgumentParser(nargs, argv);
+parser.add_argument<int>("-n", "--num").nargs(3).help("your favorite numbers");
+parser.parse_args(vector<string>{"--num", "1", "2", "3"});
+```
+Note that instead of using a chain modifier for the `type` keyword argument, instead the function is templated for common built-in types. Another
+notable difference is default values are provided by `Argument::def(...)` instead of `default`. The chain modifiers `metavar(...)`, `constant(...)`,
+and `choices(...)` all take a delimited string as the first argument and an optional delimiter character (defaulted to `,`).
+
+### The `nargs()` Chain Modifier
+
+There are three ways to provide the number of arguments to parse to an `Argument` instance: `Argument::nargs(int)`, `Argument::nargs(char)`, and
+`Argument::nargs(string)`. Currently, the python's `argparse` module's `argparse.REMAINDER` is not fully implemented. While it can be provided, it
+will be set to `'*'` when parsing.
+
+### Actions
+
+This parser does not yet support all actions present in python's `argparse` module. Additionally, there is no chain modifier for the `action` keyword
+argument. The current supported actions are `Store` (the default action), `StoreConst`, `Count`, `Version`, and `Help`. The following list explains
+how to set the argument to each of the actions.
+
+* `StoreConst`: Provide the constants using the `Argument::constant(string, char=',')` chain modifier. The method accepts a delimited
+string and an optional delimiter character (defaulted to `,`). The value(s) will be stored when the flag is present, rather than storing provided
+arguments from the command-line. 
+* `Count`: Use the `Argument::count()` chain modifier.
+* `Version`: Use the `Argument::version(string) chain modifier and provide the appropriate version string.
+* `Help`: Use the `Argument::print_help()` chain modifier. Note that the `Argument::help(string)` chain modifier is for providing help text for the
+  argument.
+
+More actions will be implemented. Feel free to create an issue requesting certain actions.
+
+## Other Utilities
+
+Not all of python's `argparse` module has been re-created here. Those that have been added are explained below. If a feature is not mentioned, it is
+safe to assume it has not yet been implemented.
+
+### Sub-commands
 
 (Documentation WIP. More will be added soon.)

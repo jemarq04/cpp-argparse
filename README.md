@@ -67,21 +67,24 @@ named `main` with the following code:
 ```C++
 auto parser = argparse::ArgumentParser(nargs, argv);
 parser.print_help();
-//Prints:
-//usage: main [-h]
-//
-//options:
-//  -h, --help  show this help message and exit
+```
+Running this script would give the following output.
+```
+usage: main [-h]
+
+options:
+  -h, --help  show this help message and exit
 ```
 If we wanted a different name to be displayed, we can alter this with the `ArgumentParser::prog(...)` modifier like the following.
 ```C++
 auto parser = argparse::ArgumentParser(nargs, argv).prog("ProgramName");
 parser.print_help();
-//Prints:
-//usage: ProgramName [-h]
-//
-//options:
-//  -h, --help  show this help message and exit
+```
+```
+usage: ProgramName [-h]
+
+options:
+  -h, --help  show this help message and exit
 ```
 
 ### `usage()`

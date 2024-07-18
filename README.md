@@ -21,7 +21,7 @@ int main(int nargs, char** argv){
 }
 ```
 
-# `ArgumentParser` Class
+## Creating an `ArgumentParser`
 
 First, we need to create an argument parser instance. This can be created simply using the `ArgumentParser` class's only constructor. The variables 
 passed into the constructor are the same as in the template in the the [previous section](#using-cpp-argparse).
@@ -46,7 +46,7 @@ parser.add_argument<bool>("--sum").dest("accumulate")
 	.help("sum the integers (default: find the max)");
 ```
 Note that the `action` keyword argument in python's `argparse` module is replaced by different chain modifiers and the keyword argument `default` is
-replaced by the modifier `Argument::def(...)`. This will be described further in the [following section](#placeholder) on `Argument`s.
+replaced by the modifier `Argument::def(...)`. This will be described further in the [following section](#placeholder) on adding arguments.
 Finally, we need to parse command-line arguments. For this example, we will instead feed in arguments into the function itself. (Note that the 
 seperator `--` is used to denote the end of optional arguments. This will help the parser recognize `-1` as a negative number and not an 
 optional argument.)
@@ -58,7 +58,7 @@ argparse::print_args(args);
 If no argument is passed into `ArgumentParser::parse_args(...)`, then the command-line arguments provided in the constructor will be used as expected.
 Note that this parser cannot yet recognize abbreviations of long options.
 
-## Chain Modifiers
+### Chain Modifiers
 
 Chain modifiers that are not yet implemented include `prefix_chars()`, `exit_on_error()`, and `allow_abrev()`. For now, exitting on errors is done by
 default and abbreviation recognition are not yet supported. 
@@ -66,8 +66,8 @@ default and abbreviation recognition are not yet supported.
 The `parents` keyword argument is now the `ArgumentParser::parent(const ArgumentParser&)` chain modifier. Rather than accepting a list of 
 parser instances, this will only take one and add the optional and positional arguments from it.
 
-# Adding arguments with `add_argument()`
+## Adding arguments with `add_argument<T>()`
 
-# Placeholder
+## Placeholder
 
 (Documentation WIP. More will be added soon.)

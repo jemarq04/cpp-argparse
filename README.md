@@ -125,7 +125,7 @@ following code.
 auto parser = argparse::ArgumentParser(nargs, argv);
 parser.add_argument("-f", "--foo").def("bar").help("foo help");
 parser.set_defaults(map<string,string>{ {"foo", "spam"} });
-auto parser.parse_args(vector<string>{""});
+auto args = parser.parse_args(vector<string>{""});
 //Namespace(foo=[spam])
 ```
 Retrieving the defaults of arguments can be done with the `ArgumentParser::get_default(std::string)` method. This will return an `ArgumentValueList`,

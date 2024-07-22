@@ -4,7 +4,20 @@ A command-line argument parser for C++11 (and later) that mimics python's `argpa
 will mostly describe differences between this package and python's module. Familiarity with the module is expected and can be found
 [here](https://docs.python.org/3/library/argparse.html).
 
-## Using cpp-argparse
+## Table of Contents
+
+- [Using `cpp-argparse`](#using-cpp-argparse)
+- [Creating an `ArgumentParser`](#creating-an-argumentparser)
+	- [Chain modifiers](#chain-modifiers)
+ - [Adding arguments with `add_argument<T>()`](#adding-arguments-with-add_argumentt)
+	- [The `nargs()` chain modifier](#the-nargs-chain-modifier)
+ 	- [Actions](#actions)
+  - [The `parse_args()` method](#the-parse_args-method)
+  - [Other utilities](#other-utilities)
+  	- [Sub-commands](#sub-commands)
+   	- [Parser defaults](#parser-defaults) 
+
+## Using `cpp-argparse`
 
 To get started, move the `argparse.h` release file into your working area and add `#include "argparse.h"` at the top of your C++ script. Now you 
 can access all of the classes and enums located in the `argparse` namespace. (If you'd prefer `argparse.h` in a different location, just be sure 

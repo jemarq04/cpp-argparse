@@ -1,5 +1,7 @@
 # CPP Argument Parser (argparse)
 
+(Documentation WIP. More will be added soon.)
+
 A command-line argument parser for C++11 (and later) that mimics python's `argparse` module using an instance of `argparse::ArgumentParser`. This file
 will mostly describe differences between this package and python's module. Familiarity with the module is expected and can be found
 [here](https://docs.python.org/3/library/argparse.html).
@@ -13,6 +15,8 @@ will mostly describe differences between this package and python's module. Famil
 	- [The `nargs()` chain modifier](#the-nargs-chain-modifier)
  	- [Actions](#actions)
   - [The `parse_args()` method](#the-parse_args-method)
+	- [The `ArgumentValue` class](#the-argumentvalue-class)
+	- [The `ArgumentValueList` class](#the-argumentvaluelist-class)
   - [Other utilities](#other-utilities)
   	- [Sub-commands](#sub-commands)
    	- [Parser defaults](#parser-defaults) 
@@ -117,6 +121,18 @@ More actions will be implemented. Feel free to create an issue requesting certai
 
 ## The `parse_args()` Method
 
+In python's `argparse` module, the `parse_args()` method returns a dictionary with each of the parsed values. In C++, we can't return a mapping of
+`string` to any given type, so instead the `ArgumentParser::parse_args()` method returns an `ArgumentValueList` instance. This class inherits
+from `vector<ArgumentValue>`. This is so that any command-line arguments that take in more than one value can be returned properly. You can access
+each of the elements of this vector like you would any vector, and the `ArgumentValue` class has some operator overloads and helper functions to help
+in using it in a convenient and simple way. This was also an attempt to mirror python dictionary functionality.
+
+### The `ArgumentValue` class
+
+Placeholder text.
+
+### The `ArgumentValueList` class
+
 Placeholder text.
 
 ## Other utilities
@@ -143,5 +159,3 @@ auto args = parser.parse_args(vector<string>{""});
 ```
 Retrieving the defaults of arguments can be done with the `ArgumentParser::get_default(std::string)` method. This will return an `ArgumentValueList`,
 just like from `ArgumentParser::parse_args()`.
-
-(Documentation WIP. More will be added soon.)

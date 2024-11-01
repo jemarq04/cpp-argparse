@@ -1,6 +1,6 @@
 #ifndef ARGPARSE_H
 #define ARGPARSE_H
-#define ARGPARSE_VERSION 2.2.4
+#define ARGPARSE_VERSION 2.2.5
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -126,6 +126,7 @@ namespace argparse{
 
 		// Accessors
 		bool is_none() const;
+		bool is_true() const;
 	};
 
 
@@ -241,6 +242,7 @@ namespace argparse{
 		std::string str() const;
 		const char* c_str() const;
 		bool is_none() const;
+		bool is_true() const;
 		std::vector<std::string> vec() const;
 	};
 	std::ostream& operator<<(std::ostream& os, const ArgumentValueList& arglist){

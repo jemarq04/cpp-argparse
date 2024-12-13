@@ -62,6 +62,7 @@ ArgumentValue  ArgumentValue::operator--(int){
 // Accessors {{{2
 bool ArgumentValue::is_none() const{return *this == NONE;}
 bool ArgumentValue::is_true() const{return *this == TRUE;}
+bool ArgumentValue::is_false() const{return *this != TRUE;}
 
 // === ARGUMENT VALUE LIST === {{{1
 //
@@ -131,6 +132,12 @@ ArgumentValueList  ArgumentValueList::operator--(int){
 	return temp;
 }	
 
+// Stream Operators {{{2
+std::ostream& operator<<(std::ostream& os, const ArgumentValueList& arglist){
+	os << arglist.str();
+	return os;
+}
+
 // Modifiers {{{2
 void ArgumentValueList::str(const std::string& val){at(0) = val;}
 
@@ -139,6 +146,7 @@ std::string ArgumentValueList::str() const{return at(0);}
 const char* ArgumentValueList::c_str() const{return at(0).c_str();}
 bool ArgumentValueList::is_none() const{return at(0) == NONE;}
 bool ArgumentValueList::is_true() const{return at(0) == TRUE;}
+bool ArgumentValueList::is_false() const{return at(0) != TRUE;}
 std::vector<std::string> ArgumentValueList::vec() const{
 	std::vector<std::string> result;
 	for (auto& val : *this) result.push_back((std::string)val);

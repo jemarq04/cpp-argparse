@@ -1,6 +1,6 @@
 #ifndef ARGPARSE_H
 #define ARGPARSE_H
-#define ARGPARSE_VERSION 2.2.5
+#define ARGPARSE_VERSION 2.2.6
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -57,6 +57,19 @@ namespace argparse{
 		operator float() const;
 		operator double() const;
 		operator bool() const;
+
+		// Logical Operators
+		bool operator!() const{
+			return !(bool)*this;
+		}
+		template <typename T>
+		bool operator&&(const T& other) const{
+			return (bool)*this && other;
+		}
+		template <typename T>
+		bool operator||(const T& other) const{
+			return (bool)*this || other;
+		}
 		
 		// Comparison Operators
 		template <typename T>
@@ -127,6 +140,7 @@ namespace argparse{
 		// Accessors
 		bool is_none() const;
 		bool is_true() const;
+		bool is_false() const;
 	};
 
 
@@ -161,6 +175,19 @@ namespace argparse{
 		operator double() const;
 		operator bool() const;
 		operator std::string() const;
+
+		// Logical Operators
+		bool operator!() const{
+			return !(bool)at(0);
+		}
+		template <typename T>
+		bool operator&&(const T& other) const{
+			return (bool)at(0) && other;
+		}
+		template <typename T>
+		bool operator||(const T& other) const{
+			return (bool)at(0) || other;
+		}
 
 		// Comparison Operators
 		template <typename T>
@@ -243,12 +270,9 @@ namespace argparse{
 		const char* c_str() const;
 		bool is_none() const;
 		bool is_true() const;
+		bool is_false() const;
 		std::vector<std::string> vec() const;
 	};
-	std::ostream& operator<<(std::ostream& os, const ArgumentValueList& arglist){
-		os << arglist.str();
-		return os;
-	}
 	typedef std::map<std::string, ArgumentValueList> ArgumentMap;
 	std::string format_args(ArgumentMap args);
 	void print_args(ArgumentMap args, std::ostream& out=std::cout);

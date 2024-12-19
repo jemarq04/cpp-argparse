@@ -1,6 +1,6 @@
 #ifndef ARGPARSE_H
 #define ARGPARSE_H
-#define ARGPARSE_VERSION 2.2.6
+#define ARGPARSE_VERSION 2.2.7
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -224,31 +224,31 @@ namespace argparse{
 		// Arithmetic Operators
 		template <typename T>
 		ArgumentValueList operator+(const T& other) const{
-			ArgumentValueList temp = {""};
+			ArgumentValueList temp = vec();
 			temp.at(0) = (T)at(0) + other;
 			return temp;
 		}
 		template <typename T>
 		ArgumentValueList operator-(const T& other) const{
-			ArgumentValueList temp = {""};
+			ArgumentValueList temp = vec();
 			temp.at(0) = (T)at(0) - other;
 			return temp;
 		}
 		template <typename T>
 		ArgumentValueList operator*(const T& other) const{
-			ArgumentValueList temp = {""};
+			ArgumentValueList temp = vec();
 			temp.at(0) = (T)at(0) * other;
 			return temp;
 		}
 		template <typename T>
 		ArgumentValueList operator/(const T& other) const{
-			ArgumentValueList temp = {""};
+			ArgumentValueList temp = vec();
 			temp.at(0) = (T)at(0) / other;
 			return temp;
 		}
 		template <typename T>
 		ArgumentValueList operator%(const T& other) const{
-			ArgumentValueList temp = {""};
+			ArgumentValueList temp = vec();
 			temp.at(0) = (T)at(0) % other;
 			return temp;
 		}

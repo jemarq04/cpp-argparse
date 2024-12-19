@@ -110,7 +110,8 @@ bool ArgumentValueList::operator<=(const char* other) const{
 
 // Arithmetic Operators {{{2
 ArgumentValueList ArgumentValueList::operator+(const char* other) const{
-	ArgumentValueList temp = {(std::string)at(0).c_str() + other};
+	ArgumentValueList temp = vec();
+	temp.at(0) = at(0) + other;
 	return temp;
 }
 
